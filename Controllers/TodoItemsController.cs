@@ -54,6 +54,27 @@ namespace aspnetserver.Controllers
             return todoItem;
         }
 
+        // GET: api/TodoItems/5
+        [HttpGet("{id}")]
+        public async Task<ActionResult<TodoItem>> Index(long id)
+        {
+            if (_context.TodoItems == null)
+            {
+                return NotFound();
+            }
+            // リクエストされたIDと一致するDB内のTodoアイテムを取得
+            var todoItem = await _context.TodoItems.FindAsync(id);
+
+            if (todoItem == null)
+            {
+                // 404 Not Found
+                return NotFound();
+            }
+
+            // 200 OK
+            return todoItem;
+        }
+
         // POST: api/TodoItems
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
@@ -63,6 +84,9 @@ namespace aspnetserver.Controllers
           {
               return Problem("Entity set 'TodoContext.TodoItems'  is null.");
           }
+            //POST時に日時を代入
+            todoItem.Modified = DateTime.Now;
+            todoItem.Created = DateTime.Now;
             // POSTされたデータをContextクラスに追加する
             _context.TodoItems.Add(todoItem);
 
@@ -86,8 +110,16 @@ namespace aspnetserver.Controllers
             // エンティティ（todoItem）の状態をUnchangedからModifiedに変更する
             _context.Entry(todoItem).State = EntityState.Modified;
 
+                var nowData = await _context.TodoItems.FindAsync(id);
             try
             {
+                //nowData.Title = todoItem.Title;
+                //nowData.Text = todoItem.Text;
+                //nowData.IsComplete = todoItem.IsComplete;
+                //PUT時に日時を代入
+
+                nowData.Modified = todoItem.Modified;
+                todoItem.Created = DateTime.Now;
                 await _context.SaveChangesAsync();
             }
             // 同時実行制御に関する例外（更新中に別のユーザーによって値が書き換えられた場合など）
